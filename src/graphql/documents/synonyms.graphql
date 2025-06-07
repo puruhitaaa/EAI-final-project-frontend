@@ -1,0 +1,11 @@
+query GetSuggestions($word: String!, $context: String) {
+  getSuggestions(word: $word, context: $context)
+}
+
+query GetAllSynonyms {
+  getAllSynonyms {
+    word
+    suggestions
+    appropriatenessScore
+  }
+}

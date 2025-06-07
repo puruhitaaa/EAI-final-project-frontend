@@ -1,0 +1,22 @@
+query CheckText($input: String!) {
+  checkText(input: $input) {
+    word
+    severity
+    contextDependent
+    aiDetectable
+    geminiExplanation
+    suggestions
+    category
+  }
+}
+
+query AnalyzeSentiment($text: String!) {
+  analyzeSentiment(text: $text) {
+    id
+    sentiment
+    appropriatenessScore
+    toxicityScore
+    professionalismScore
+    review
+  }
+}

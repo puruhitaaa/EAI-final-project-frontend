@@ -1,0 +1,64 @@
+/* eslint-disable */
+import * as types from './graphql';
+import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
+
+/**
+ * Map of all GraphQL operations in the project.
+ *
+ * This map has several performance disadvantages:
+ * 1. It is not tree-shakeable, so it will include all operations in the project.
+ * 2. It is not minifiable, so the string of a GraphQL query will be multiple times inside the bundle.
+ * 3. It does not support dead code elimination, so it will add unused operations.
+ *
+ * Therefore it is highly recommended to use the babel or swc plugin for production.
+ * Learn more about it here: https://the-guild.dev/graphql/codegen/plugins/presets/preset-client#reducing-bundle-size
+ */
+type Documents = {
+    "query GetCategoryForWord($word: String!, $context: String) {\n  getCategoryForWord(word: $word, context: $context) {\n    word\n    category\n    description\n    severityLevel\n    confidence\n    explanation\n  }\n}\n\nquery GetAllCategories {\n  getAllCategories {\n    id\n    name\n    description\n    severityLevel\n  }\n}": typeof types.GetCategoryForWordDocument,
+    "query GetReports($limit: Int, $offset: Int) {\n  getReports(limit: $limit, offset: $offset) {\n    id\n    title\n    startDate\n    endDate\n    summary\n    totalFlagged\n    categories {\n      name\n      count\n    }\n    insights\n    riskAssessment\n    createdAt\n  }\n}\n\nquery GetReportById($id: ID!) {\n  getReportById(id: $id) {\n    id\n    title\n    startDate\n    endDate\n    summary\n    totalFlagged\n    categoryBreakdown\n    insights\n    riskAssessment\n    entries(limit: 50, offset: 0) {\n      id\n      word\n      category\n      context\n      timestamp\n      severity\n    }\n  }\n}\n\nmutation GenerateReport($startDate: String!, $endDate: String!, $title: String) {\n  generateReport(startDate: $startDate, endDate: $endDate, title: $title) {\n    id\n    title\n    summary\n  }\n}": typeof types.GetReportsDocument,
+    "query GetSuggestions($word: String!, $context: String) {\n  getSuggestions(word: $word, context: $context)\n}\n\nquery GetAllSynonyms {\n  getAllSynonyms {\n    word\n    suggestions\n    appropriatenessScore\n  }\n}": typeof types.GetSuggestionsDocument,
+    "query CheckText($input: String!) {\n  checkText(input: $input) {\n    word\n    severity\n    contextDependent\n    aiDetectable\n    geminiExplanation\n    suggestions\n    category\n  }\n}\n\nquery AnalyzeSentiment($text: String!) {\n  analyzeSentiment(text: $text) {\n    id\n    sentiment\n    appropriatenessScore\n    toxicityScore\n    professionalismScore\n    review\n  }\n}": typeof types.CheckTextDocument,
+};
+const documents: Documents = {
+    "query GetCategoryForWord($word: String!, $context: String) {\n  getCategoryForWord(word: $word, context: $context) {\n    word\n    category\n    description\n    severityLevel\n    confidence\n    explanation\n  }\n}\n\nquery GetAllCategories {\n  getAllCategories {\n    id\n    name\n    description\n    severityLevel\n  }\n}": types.GetCategoryForWordDocument,
+    "query GetReports($limit: Int, $offset: Int) {\n  getReports(limit: $limit, offset: $offset) {\n    id\n    title\n    startDate\n    endDate\n    summary\n    totalFlagged\n    categories {\n      name\n      count\n    }\n    insights\n    riskAssessment\n    createdAt\n  }\n}\n\nquery GetReportById($id: ID!) {\n  getReportById(id: $id) {\n    id\n    title\n    startDate\n    endDate\n    summary\n    totalFlagged\n    categoryBreakdown\n    insights\n    riskAssessment\n    entries(limit: 50, offset: 0) {\n      id\n      word\n      category\n      context\n      timestamp\n      severity\n    }\n  }\n}\n\nmutation GenerateReport($startDate: String!, $endDate: String!, $title: String) {\n  generateReport(startDate: $startDate, endDate: $endDate, title: $title) {\n    id\n    title\n    summary\n  }\n}": types.GetReportsDocument,
+    "query GetSuggestions($word: String!, $context: String) {\n  getSuggestions(word: $word, context: $context)\n}\n\nquery GetAllSynonyms {\n  getAllSynonyms {\n    word\n    suggestions\n    appropriatenessScore\n  }\n}": types.GetSuggestionsDocument,
+    "query CheckText($input: String!) {\n  checkText(input: $input) {\n    word\n    severity\n    contextDependent\n    aiDetectable\n    geminiExplanation\n    suggestions\n    category\n  }\n}\n\nquery AnalyzeSentiment($text: String!) {\n  analyzeSentiment(text: $text) {\n    id\n    sentiment\n    appropriatenessScore\n    toxicityScore\n    professionalismScore\n    review\n  }\n}": types.CheckTextDocument,
+};
+
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ *
+ *
+ * @example
+ * ```ts
+ * const query = graphql(`query GetUser($id: ID!) { user(id: $id) { name } }`);
+ * ```
+ *
+ * The query argument is unknown!
+ * Please regenerate the types.
+ */
+export function graphql(source: string): unknown;
+
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "query GetCategoryForWord($word: String!, $context: String) {\n  getCategoryForWord(word: $word, context: $context) {\n    word\n    category\n    description\n    severityLevel\n    confidence\n    explanation\n  }\n}\n\nquery GetAllCategories {\n  getAllCategories {\n    id\n    name\n    description\n    severityLevel\n  }\n}"): (typeof documents)["query GetCategoryForWord($word: String!, $context: String) {\n  getCategoryForWord(word: $word, context: $context) {\n    word\n    category\n    description\n    severityLevel\n    confidence\n    explanation\n  }\n}\n\nquery GetAllCategories {\n  getAllCategories {\n    id\n    name\n    description\n    severityLevel\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "query GetReports($limit: Int, $offset: Int) {\n  getReports(limit: $limit, offset: $offset) {\n    id\n    title\n    startDate\n    endDate\n    summary\n    totalFlagged\n    categories {\n      name\n      count\n    }\n    insights\n    riskAssessment\n    createdAt\n  }\n}\n\nquery GetReportById($id: ID!) {\n  getReportById(id: $id) {\n    id\n    title\n    startDate\n    endDate\n    summary\n    totalFlagged\n    categoryBreakdown\n    insights\n    riskAssessment\n    entries(limit: 50, offset: 0) {\n      id\n      word\n      category\n      context\n      timestamp\n      severity\n    }\n  }\n}\n\nmutation GenerateReport($startDate: String!, $endDate: String!, $title: String) {\n  generateReport(startDate: $startDate, endDate: $endDate, title: $title) {\n    id\n    title\n    summary\n  }\n}"): (typeof documents)["query GetReports($limit: Int, $offset: Int) {\n  getReports(limit: $limit, offset: $offset) {\n    id\n    title\n    startDate\n    endDate\n    summary\n    totalFlagged\n    categories {\n      name\n      count\n    }\n    insights\n    riskAssessment\n    createdAt\n  }\n}\n\nquery GetReportById($id: ID!) {\n  getReportById(id: $id) {\n    id\n    title\n    startDate\n    endDate\n    summary\n    totalFlagged\n    categoryBreakdown\n    insights\n    riskAssessment\n    entries(limit: 50, offset: 0) {\n      id\n      word\n      category\n      context\n      timestamp\n      severity\n    }\n  }\n}\n\nmutation GenerateReport($startDate: String!, $endDate: String!, $title: String) {\n  generateReport(startDate: $startDate, endDate: $endDate, title: $title) {\n    id\n    title\n    summary\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "query GetSuggestions($word: String!, $context: String) {\n  getSuggestions(word: $word, context: $context)\n}\n\nquery GetAllSynonyms {\n  getAllSynonyms {\n    word\n    suggestions\n    appropriatenessScore\n  }\n}"): (typeof documents)["query GetSuggestions($word: String!, $context: String) {\n  getSuggestions(word: $word, context: $context)\n}\n\nquery GetAllSynonyms {\n  getAllSynonyms {\n    word\n    suggestions\n    appropriatenessScore\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "query CheckText($input: String!) {\n  checkText(input: $input) {\n    word\n    severity\n    contextDependent\n    aiDetectable\n    geminiExplanation\n    suggestions\n    category\n  }\n}\n\nquery AnalyzeSentiment($text: String!) {\n  analyzeSentiment(text: $text) {\n    id\n    sentiment\n    appropriatenessScore\n    toxicityScore\n    professionalismScore\n    review\n  }\n}"): (typeof documents)["query CheckText($input: String!) {\n  checkText(input: $input) {\n    word\n    severity\n    contextDependent\n    aiDetectable\n    geminiExplanation\n    suggestions\n    category\n  }\n}\n\nquery AnalyzeSentiment($text: String!) {\n  analyzeSentiment(text: $text) {\n    id\n    sentiment\n    appropriatenessScore\n    toxicityScore\n    professionalismScore\n    review\n  }\n}"];
+
+export function graphql(source: string) {
+  return (documents as any)[source] ?? {};
+}
+
+export type DocumentType<TDocumentNode extends DocumentNode<any, any>> = TDocumentNode extends DocumentNode<  infer TType,  any>  ? TType  : never;

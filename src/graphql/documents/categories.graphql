@@ -1,0 +1,19 @@
+query GetCategoryForWord($word: String!, $context: String) {
+  getCategoryForWord(word: $word, context: $context) {
+    word
+    category
+    description
+    severityLevel
+    confidence
+    explanation
+  }
+}
+
+query GetAllCategories {
+  getAllCategories {
+    id
+    name
+    description
+    severityLevel
+  }
+}

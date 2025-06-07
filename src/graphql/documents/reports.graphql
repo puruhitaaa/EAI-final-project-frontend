@@ -1,0 +1,47 @@
+query GetReports($limit: Int, $offset: Int) {
+  getReports(limit: $limit, offset: $offset) {
+    id
+    title
+    startDate
+    endDate
+    summary
+    totalFlagged
+    categories {
+      name
+      count
+    }
+    insights
+    riskAssessment
+    createdAt
+  }
+}
+
+query GetReportById($id: ID!) {
+  getReportById(id: $id) {
+    id
+    title
+    startDate
+    endDate
+    summary
+    totalFlagged
+    categoryBreakdown
+    insights
+    riskAssessment
+    entries(limit: 50, offset: 0) {
+      id
+      word
+      category
+      context
+      timestamp
+      severity
+    }
+  }
+}
+
+mutation GenerateReport($startDate: String!, $endDate: String!, $title: String) {
+  generateReport(startDate: $startDate, endDate: $endDate, title: $title) {
+    id
+    title
+    summary
+  }
+}
