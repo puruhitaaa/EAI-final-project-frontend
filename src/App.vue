@@ -5,5 +5,6 @@
 <template>
   <main>
     <!-- <TheWelcome /> -->
+    <p class="text-red-500">test</p>
   </main>
 </template>
