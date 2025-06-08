@@ -1,0 +1,52 @@
+query GetDashboardMetrics {
+  getReports(limit: 3) {
+    id
+    title
+    startDate
+    endDate
+    createdAt
+    totalFlagged
+  }
+  getAllCategories {
+    id
+    name
+    severityLevel
+  }
+  getRecentAnalyses(limit: 5) {
+    id
+  }
+}
+
+query GetDashboardCategories {
+  getAllCategories {
+    id
+    name
+    severityLevel
+  }
+}
+
+query GetRecentAnalyses($limit: Int) {
+  getRecentAnalyses(limit: $limit) {
+    id
+  }
+}
+
+query GetRecentReports($limit: Int) {
+  getReports(limit: $limit) {
+    id
+    title
+    startDate
+    endDate
+    createdAt
+    totalFlagged
+  }
+}
+
+query GetTopCategories($limit: Int) {
+  getReports(limit: $limit) {
+    categories {
+      name
+      count
+    }
+  }
+}
