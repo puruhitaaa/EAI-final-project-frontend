@@ -1,6 +1,11 @@
-import { useQuery } from '@vue/apollo-composable'
-import { ref, computed } from 'vue'
+import { useQuery, useLazyQuery } from '@vue/apollo-composable'
+import { computed } from 'vue'
 import gql from 'graphql-tag'
+import type {
+  GetAllCategoriesQuery,
+  GetCategoryForWordQuery,
+  GetCategoryForWordQueryVariables,
+} from '@/gql/graphql'
 
 // GraphQL documents
 const GET_ALL_CATEGORIES = gql`
@@ -27,63 +32,30 @@ const GET_CATEGORY_FOR_WORD = gql`
   }
 `
 
-// Types based on the GraphQL schema
-interface Category {
-  id: string
-  name: string
-  description: string
-  severityLevel: string
-}
-
-interface WordCategory {
-  word: string
-  category: string
-  description: string
-  severityLevel: string
-  confidence: number
-  explanation: string
-}
-
-interface GetAllCategoriesResult {
-  getAllCategories: Category[]
-}
-
-interface GetCategoryForWordResult {
-  getCategoryForWord: WordCategory
-}
-
 export function useCategories() {
   // Get all categories
   const {
     result: categoriesResult,
     loading: categoriesLoading,
     error: categoriesError,
-    refetch: refetchCategories,
-  } = useQuery<GetAllCategoriesResult>(GET_ALL_CATEGORIES)
+  } = useQuery<GetAllCategoriesQuery>(GET_ALL_CATEGORIES)
 
-  const categories = computed(() => categoriesResult.value?.getAllCategories || [])
+  const categories = computed(() => categoriesResult.value?.getAllCategories ?? [])
 
-  // Get category for a word
-  const word = ref('')
-  const context = ref('')
-
+  // Get category for a word (lazily)
   const {
     result: wordCategoryResult,
     loading: wordCategoryLoading,
     error: wordCategoryError,
-    refetch: refetchWordCategory,
-  } = useQuery<GetCategoryForWordResult>(
-    GET_CATEGORY_FOR_WORD,
-    () => ({ word: word.value, context: context.value }),
-    { enabled: false },
-  )
+    load: loadWordCategory,
+  } = useLazyQuery<GetCategoryForWordQuery, GetCategoryForWordQueryVariables>(GET_CATEGORY_FOR_WORD)
 
   const wordCategory = computed(() => wordCategoryResult.value?.getCategoryForWord)
 
-  const getCategoryForWord = async (wordValue: string, contextValue?: string) => {
-    word.value = wordValue
-    context.value = contextValue || ''
-    await refetchWordCategory()
+  const getCategoryForWord = async (word: string, context?: string) => {
+    // The 'load' function from useLazyQuery returns a promise.
+    // It can be called without checking if it's defined.
+    await loadWordCategory(undefined, { word, context: context ?? '' })
     return wordCategory.value
   }
 
