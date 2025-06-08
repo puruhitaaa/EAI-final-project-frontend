@@ -1,4 +1,4 @@
-import { useQuery } from '@vue/apollo-composable'
+import { useLazyQuery } from '@vue/apollo-composable'
 import { ref, computed } from 'vue'
 import gql from 'graphql-tag'
 
@@ -33,7 +33,7 @@ const ANALYZE_SENTIMENT = gql`
 // Define types based on the GraphQL schema
 interface FlaggedWord {
   word: string
-  severity: string
+  severity: number
   contextDependent: boolean
   aiDetectable: boolean
   geminiExplanation?: string
@@ -61,35 +61,33 @@ interface AnalyzeSentimentResult {
 export function useTextAnalysis() {
   const text = ref('')
 
-  // Check text for profanity
+  // Check text for profanity using useLazyQuery
   const {
     result: checkResult,
     loading: checkLoading,
     error: checkError,
-    refetch: refetchCheck,
-  } = useQuery<CheckTextResult>(CHECK_TEXT, () => ({ input: text.value }), { enabled: false })
+    load: loadCheck,
+  } = useLazyQuery<CheckTextResult>(CHECK_TEXT)
 
-  // Analyze sentiment
+  // Analyze sentiment using useLazyQuery
   const {
     result: sentimentResult,
     loading: sentimentLoading,
     error: sentimentError,
-    refetch: refetchSentiment,
-  } = useQuery<AnalyzeSentimentResult>(ANALYZE_SENTIMENT, () => ({ text: text.value }), {
-    enabled: false,
-  })
+    load: loadSentiment,
+  } = useLazyQuery<AnalyzeSentimentResult>(ANALYZE_SENTIMENT)
 
   const flaggedWords = computed(() => checkResult.value?.checkText || [])
   const sentiment = computed(() => sentimentResult.value?.analyzeSentiment)
 
   const checkText = async (inputText: string) => {
     text.value = inputText
-    await refetchCheck()
+    await loadCheck(undefined, { input: inputText })
   }
 
   const analyzeSentiment = async (inputText: string) => {
     text.value = inputText
-    await refetchSentiment()
+    await loadSentiment(undefined, { text: inputText })
   }
 
   return {
