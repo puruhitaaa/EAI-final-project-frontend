@@ -1,6 +1,12 @@
 import { useLazyQuery } from '@vue/apollo-composable'
 import { ref, computed } from 'vue'
 import gql from 'graphql-tag'
+import type {
+  CheckTextQuery,
+  CheckTextQueryVariables,
+  AnalyzeSentimentQuery,
+  AnalyzeSentimentQueryVariables,
+} from '@/gql/graphql'
 
 // GraphQL documents
 const CHECK_TEXT = gql`
@@ -30,34 +36,6 @@ const ANALYZE_SENTIMENT = gql`
   }
 `
 
-// Define types based on the GraphQL schema
-interface FlaggedWord {
-  word: string
-  severity: number
-  contextDependent: boolean
-  aiDetectable: boolean
-  geminiExplanation?: string
-  suggestions?: string[]
-  category?: string
-}
-
-interface SentimentAnalysis {
-  id: string
-  sentiment: string
-  appropriatenessScore: number
-  toxicityScore: number
-  professionalismScore: number
-  review?: string
-}
-
-interface CheckTextResult {
-  checkText: FlaggedWord[]
-}
-
-interface AnalyzeSentimentResult {
-  analyzeSentiment: SentimentAnalysis
-}
-
 export function useTextAnalysis() {
   const text = ref('')
 
@@ -67,7 +45,7 @@ export function useTextAnalysis() {
     loading: checkLoading,
     error: checkError,
     load: loadCheck,
-  } = useLazyQuery<CheckTextResult>(CHECK_TEXT)
+  } = useLazyQuery<CheckTextQuery, CheckTextQueryVariables>(CHECK_TEXT)
 
   // Analyze sentiment using useLazyQuery
   const {
@@ -75,7 +53,7 @@ export function useTextAnalysis() {
     loading: sentimentLoading,
     error: sentimentError,
     load: loadSentiment,
-  } = useLazyQuery<AnalyzeSentimentResult>(ANALYZE_SENTIMENT)
+  } = useLazyQuery<AnalyzeSentimentQuery, AnalyzeSentimentQueryVariables>(ANALYZE_SENTIMENT)
 
   const flaggedWords = computed(() => checkResult.value?.checkText || [])
   const sentiment = computed(() => sentimentResult.value?.analyzeSentiment)

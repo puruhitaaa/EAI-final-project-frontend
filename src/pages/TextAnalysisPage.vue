@@ -20,6 +20,12 @@ const {
 const isLoading = computed(() => checkLoading.value || sentimentLoading.value)
 const error = computed(() => checkError.value || sentimentError.value)
 
+const filteredFlaggedWords = computed(() =>
+  (flaggedWords.value ?? []).filter(
+    (word): word is NonNullable<(typeof flaggedWords.value)[number]> => !!word,
+  ),
+)
+
 const handleAnalyze = async () => {
   if (!inputText.value.trim() || isLoading.value) return
   analysisPerformed.value = false
@@ -52,12 +58,14 @@ const getScoreColor = (score: number | undefined): string => {
 }
 
 const highlightedText = computed(() => {
-  if (!flaggedWords.value || flaggedWords.value.length === 0) {
+  if (!filteredFlaggedWords.value.length) {
     return inputText.value
   }
 
   let text = inputText.value
-  const uniqueWords = [...new Map(flaggedWords.value.map((item) => [item.word, item])).values()]
+  const uniqueWords = [
+    ...new Map(filteredFlaggedWords.value.map((item) => [item.word, item])).values(),
+  ]
 
   uniqueWords.forEach((wordInfo) => {
     const regex = new RegExp(`\\b(${wordInfo.word})\\b`, 'gi')
@@ -73,7 +81,9 @@ const highlightedText = computed(() => {
 const overallScore = computed(() => {
   if (!sentiment.value) return 0
   const { appropriatenessScore, toxicityScore, professionalismScore } = sentiment.value
-  return (appropriatenessScore + (1 - toxicityScore) + professionalismScore) / 3
+  return (
+    (Number(appropriatenessScore) + (1 - Number(toxicityScore)) + Number(professionalismScore)) / 3
+  )
 })
 
 const overallFeedback = computed(() => {
@@ -163,13 +173,16 @@ const overallFeedback = computed(() => {
               </p>
             </header>
             <div class="p-6 border-t">
-              <div v-if="!flaggedWords.length" class="text-center text-muted-foreground py-4">
+              <div
+                v-if="!filteredFlaggedWords.length"
+                class="text-center text-muted-foreground py-4"
+              >
                 <CheckCircle class="mx-auto h-8 w-8 text-green-500" />
                 <p class="mt-2">No problematic words found.</p>
               </div>
               <div v-else class="space-y-4">
                 <div
-                  v-for="(word, index) in flaggedWords"
+                  v-for="(word, index) in filteredFlaggedWords"
                   :key="index"
                   class="border p-4 rounded-lg"
                 >
@@ -194,7 +207,7 @@ const overallFeedback = computed(() => {
                     <div class="flex flex-wrap gap-2">
                       <span
                         v-for="suggestion in word.suggestions"
-                        :key="suggestion"
+                        :key="suggestion ?? ''"
                         class="px-2 py-1 bg-background border rounded-md text-sm cursor-pointer hover:bg-accent"
                       >
                         {{ suggestion }}
@@ -229,7 +242,10 @@ const overallFeedback = computed(() => {
                   </div>
                   <div class="w-full bg-muted rounded-full h-2">
                     <div
-                      :class="['h-2 rounded-full', getScoreColor(sentiment.appropriatenessScore)]"
+                      :class="[
+                        'h-2 rounded-full',
+                        getScoreColor(sentiment.appropriatenessScore ?? 0),
+                      ]"
                       :style="{ width: `${sentiment.appropriatenessScore}%` }"
                     ></div>
                   </div>
@@ -243,7 +259,7 @@ const overallFeedback = computed(() => {
                   </div>
                   <div class="w-full bg-muted rounded-full h-2">
                     <div
-                      :class="['h-2 rounded-full', getScoreColor(100 - sentiment.toxicityScore)]"
+                      :class="['h-2 rounded-full', getScoreColor(sentiment.toxicityScore ?? 0)]"
                       :style="{ width: `${sentiment.toxicityScore}%` }"
                     ></div>
                   </div>
@@ -257,7 +273,10 @@ const overallFeedback = computed(() => {
                   </div>
                   <div class="w-full bg-muted rounded-full h-2">
                     <div
-                      :class="['h-2 rounded-full', getScoreColor(sentiment.professionalismScore)]"
+                      :class="[
+                        'h-2 rounded-full',
+                        getScoreColor(sentiment.professionalismScore ?? 0),
+                      ]"
                       :style="{ width: `${sentiment.professionalismScore}%` }"
                     ></div>
                   </div>
