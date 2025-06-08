@@ -1,14 +1,8 @@
-import { useQuery, useMutation } from '@vue/apollo-composable'
+import { useQuery } from '@vue/apollo-composable'
 import { ref, computed } from 'vue'
-import type {
-  CheckTextQuery,
-  CheckTextQueryVariables,
-  AnalyzeSentimentQuery,
-  AnalyzeSentimentQueryVariables,
-} from '@/gql/graphql'
 import gql from 'graphql-tag'
 
-// Import our GraphQL documents
+// GraphQL documents
 const CHECK_TEXT = gql`
   query CheckText($input: String!) {
     checkText(input: $input) {
@@ -36,6 +30,34 @@ const ANALYZE_SENTIMENT = gql`
   }
 `
 
+// Define types based on the GraphQL schema
+interface FlaggedWord {
+  word: string
+  severity: string
+  contextDependent: boolean
+  aiDetectable: boolean
+  geminiExplanation?: string
+  suggestions?: string[]
+  category?: string
+}
+
+interface SentimentAnalysis {
+  id: string
+  sentiment: string
+  appropriatenessScore: number
+  toxicityScore: number
+  professionalismScore: number
+  review?: string
+}
+
+interface CheckTextResult {
+  checkText: FlaggedWord[]
+}
+
+interface AnalyzeSentimentResult {
+  analyzeSentiment: SentimentAnalysis
+}
+
 export function useTextAnalysis() {
   const text = ref('')
 
@@ -45,9 +67,7 @@ export function useTextAnalysis() {
     loading: checkLoading,
     error: checkError,
     refetch: refetchCheck,
-  } = useQuery<CheckTextQuery, CheckTextQueryVariables>(CHECK_TEXT, () => ({ input: text.value }), {
-    enabled: false,
-  })
+  } = useQuery<CheckTextResult>(CHECK_TEXT, () => ({ input: text.value }), { enabled: false })
 
   // Analyze sentiment
   const {
@@ -55,11 +75,9 @@ export function useTextAnalysis() {
     loading: sentimentLoading,
     error: sentimentError,
     refetch: refetchSentiment,
-  } = useQuery<AnalyzeSentimentQuery, AnalyzeSentimentQueryVariables>(
-    ANALYZE_SENTIMENT,
-    () => ({ text: text.value }),
-    { enabled: false },
-  )
+  } = useQuery<AnalyzeSentimentResult>(ANALYZE_SENTIMENT, () => ({ text: text.value }), {
+    enabled: false,
+  })
 
   const flaggedWords = computed(() => checkResult.value?.checkText || [])
   const sentiment = computed(() => sentimentResult.value?.analyzeSentiment)

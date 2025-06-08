@@ -1,55 +1,10 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useReports } from '@/composables/useReports'
 
-const reports = ref([
-  {
-    id: '1',
-    title: 'Weekly Report - Nov 1',
-    startDate: '2024-10-25',
-    endDate: '2024-11-01',
-    summary: 'Weekly analysis of content monitoring',
-    totalFlagged: 45,
-    categories: [
-      { name: 'Profanity', count: 18 },
-      { name: 'Hate Speech', count: 12 },
-      { name: 'Harassment', count: 15 },
-    ],
-    createdAt: '2024-11-01',
-  },
-  {
-    id: '2',
-    title: 'Monthly Summary - October',
-    startDate: '2024-10-01',
-    endDate: '2024-10-31',
-    summary: 'Monthly overview of content filtering results',
-    totalFlagged: 128,
-    categories: [
-      { name: 'Profanity', count: 52 },
-      { name: 'Hate Speech', count: 31 },
-      { name: 'Harassment', count: 27 },
-      { name: 'Sexual Content', count: 18 },
-    ],
-    createdAt: '2024-10-31',
-  },
-  {
-    id: '3',
-    title: 'Q3 Analysis Report',
-    startDate: '2024-07-01',
-    endDate: '2024-09-30',
-    summary: 'Quarterly analysis of content filtering system',
-    totalFlagged: 287,
-    categories: [
-      { name: 'Profanity', count: 124 },
-      { name: 'Hate Speech', count: 83 },
-      { name: 'Harassment', count: 46 },
-      { name: 'Sexual Content', count: 34 },
-    ],
-    createdAt: '2024-10-15',
-  },
-])
+const { reports, reportsLoading, generateReport, generateReportLoading } = useReports()
 
 const showGenerateForm = ref(false)
-const generatingReport = ref(false)
 const newReport = ref({
   title: '',
   startDate: '',
@@ -57,40 +12,28 @@ const newReport = ref({
 })
 
 const isSubmitDisabled = computed(() => {
-  return !newReport.value.startDate || !newReport.value.endDate || generatingReport.value
+  return !newReport.value.startDate || !newReport.value.endDate || generateReportLoading.value
 })
 
-const handleGenerateReport = () => {
+const handleGenerateReport = async () => {
   if (isSubmitDisabled.value) return
 
-  generatingReport.value = true
+  try {
+    await generateReport(
+      newReport.value.startDate,
+      newReport.value.endDate,
+      newReport.value.title || undefined,
+    )
 
-  // Simulate API call
-  setTimeout(() => {
-    const reportId = Math.floor(Math.random() * 1000).toString()
-
-    reports.value.unshift({
-      id: reportId,
-      title: newReport.value.title || `Report ${reportId}`,
-      startDate: newReport.value.startDate,
-      endDate: newReport.value.endDate,
-      summary: 'Generated report',
-      totalFlagged: Math.floor(Math.random() * 100),
-      categories: [
-        { name: 'Profanity', count: Math.floor(Math.random() * 40) },
-        { name: 'Hate Speech', count: Math.floor(Math.random() * 20) },
-      ],
-      createdAt: new Date().toISOString().split('T')[0],
-    })
-
-    generatingReport.value = false
     showGenerateForm.value = false
     newReport.value = {
       title: '',
       startDate: '',
       endDate: '',
     }
-  }, 1500)
+  } catch (error) {
+    console.error('Error generating report:', error)
+  }
 }
 </script>
 
@@ -144,14 +87,32 @@ const handleGenerateReport = () => {
           class="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors"
           :disabled="isSubmitDisabled"
         >
-          <span v-if="generatingReport">Generating...</span>
+          <span v-if="generateReportLoading">Generating...</span>
           <span v-else>Generate Report</span>
         </button>
       </div>
     </div>
 
+    <!-- Loading State -->
+    <div v-if="reportsLoading && !reports.length" class="flex justify-center items-center py-12">
+      <div
+        class="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"
+      ></div>
+    </div>
+
+    <!-- No Reports State -->
+    <div v-else-if="!reports.length" class="bg-card rounded-lg shadow p-8 text-center">
+      <p class="text-lg text-muted-foreground mb-4">No reports available</p>
+      <button
+        @click="showGenerateForm = true"
+        class="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors"
+      >
+        Generate Your First Report
+      </button>
+    </div>
+
     <!-- Reports List -->
-    <div class="bg-card rounded-lg shadow">
+    <div v-else class="bg-card rounded-lg shadow">
       <div class="overflow-x-auto">
         <table class="w-full">
           <thead>

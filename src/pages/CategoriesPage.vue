@@ -1,58 +1,29 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useCategories } from '@/composables/useCategories'
 
-const categories = ref([
-  {
-    id: '1',
-    name: 'Profanity',
-    description: 'Offensive language and swear words',
-    severityLevel: 'Medium',
-  },
-  {
-    id: '2',
-    name: 'Hate Speech',
-    description: 'Content that promotes hate or violence against groups',
-    severityLevel: 'High',
-  },
-  {
-    id: '3',
-    name: 'Harassment',
-    description: 'Content targeting individuals in a harmful way',
-    severityLevel: 'High',
-  },
-  {
-    id: '4',
-    name: 'Sexual Content',
-    description: 'Explicit sexual references or innuendo',
-    severityLevel: 'Medium',
-  },
-  {
-    id: '5',
-    name: 'Discrimination',
-    description: 'Prejudicial statements based on protected characteristics',
-    severityLevel: 'High',
-  },
-  {
-    id: '6',
-    name: 'Threats',
-    description: 'Statements indicating intent to harm',
-    severityLevel: 'High',
-  },
-  {
-    id: '7',
-    name: 'Mild Language',
-    description: 'Mildly inappropriate language',
-    severityLevel: 'Low',
-  },
-])
+interface CategoryForm {
+  name: string
+  description: string
+  severityLevel: string
+}
+
+interface Category {
+  id: string
+  name: string
+  description: string
+  severityLevel: string
+}
+
+const { categories, categoriesLoading } = useCategories()
 
 const showAddForm = ref(false)
-const newCategory = ref({
+const newCategory = ref<CategoryForm>({
   name: '',
   description: '',
   severityLevel: 'Medium',
 })
-const editingCategory = ref(null)
+const editingCategory = ref<string | null>(null)
 
 const severityOptions = [
   { value: 'Low', label: 'Low' },
@@ -69,35 +40,22 @@ const resetForm = () => {
   editingCategory.value = null
 }
 
+// In a real application, these would be mutations to the GraphQL API
 const handleAddCategory = () => {
   if (!newCategory.value.name || !newCategory.value.description) return
 
+  // For now, we'll just show an alert as we don't have the mutation for category management
   if (editingCategory.value) {
-    // Edit existing category
-    const index = categories.value.findIndex((c) => c.id === editingCategory.value)
-    if (index !== -1) {
-      categories.value[index] = {
-        ...categories.value[index],
-        name: newCategory.value.name,
-        description: newCategory.value.description,
-        severityLevel: newCategory.value.severityLevel,
-      }
-    }
+    alert(`Editing category: ${JSON.stringify(newCategory.value)}`)
   } else {
-    // Add new category
-    categories.value.push({
-      id: Math.floor(Math.random() * 10000).toString(),
-      name: newCategory.value.name,
-      description: newCategory.value.description,
-      severityLevel: newCategory.value.severityLevel,
-    })
+    alert(`Adding new category: ${JSON.stringify(newCategory.value)}`)
   }
 
   showAddForm.value = false
   resetForm()
 }
 
-const handleEditCategory = (category) => {
+const handleEditCategory = (category: Category) => {
   editingCategory.value = category.id
   newCategory.value = {
     name: category.name,
@@ -107,13 +65,14 @@ const handleEditCategory = (category) => {
   showAddForm.value = true
 }
 
-const handleDeleteCategory = (categoryId) => {
+const handleDeleteCategory = (categoryId: string) => {
   if (confirm('Are you sure you want to delete this category? This action cannot be undone.')) {
-    categories.value = categories.value.filter((c) => c.id !== categoryId)
+    // In a real application, this would be a mutation to the GraphQL API
+    alert(`Deleting category with ID: ${categoryId}`)
   }
 }
 
-const getSeverityClass = (severity) => {
+const getSeverityClass = (severity: string) => {
   switch (severity?.toLowerCase()) {
     case 'high':
       return 'bg-destructive text-destructive-foreground'
@@ -194,8 +153,29 @@ const getSeverityClass = (severity) => {
       </div>
     </div>
 
+    <!-- Loading State -->
+    <div
+      v-if="categoriesLoading && !categories.length"
+      class="flex justify-center items-center py-12"
+    >
+      <div
+        class="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"
+      ></div>
+    </div>
+
+    <!-- No Categories State -->
+    <div v-else-if="!categories.length" class="bg-card rounded-lg shadow p-8 text-center">
+      <p class="text-lg text-muted-foreground mb-4">No categories available</p>
+      <button
+        @click="showAddForm = true"
+        class="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors"
+      >
+        Add Your First Category
+      </button>
+    </div>
+
     <!-- Categories List -->
-    <div class="bg-card rounded-lg shadow">
+    <div v-else class="bg-card rounded-lg shadow">
       <div class="overflow-x-auto">
         <table class="w-full">
           <thead>

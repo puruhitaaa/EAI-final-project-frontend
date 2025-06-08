@@ -12,12 +12,16 @@ const activeTab = ref('flagged')
 const handleAnalyzeText = async () => {
   if (!inputText.value.trim()) return
 
-  await checkText(inputText.value)
-  await analyzeSentiment(inputText.value)
-  showResults.value = true
+  try {
+    await checkText(inputText.value)
+    await analyzeSentiment(inputText.value)
+    showResults.value = true
+  } catch (error) {
+    console.error('Error analyzing text:', error)
+  }
 }
 
-const getSeverityClass = (severity: string) => {
+const getSeverityClass = (severity: string): string => {
   switch (severity?.toLowerCase()) {
     case 'high':
       return 'bg-destructive text-destructive-foreground'
@@ -30,8 +34,8 @@ const getSeverityClass = (severity: string) => {
   }
 }
 
-const getSentimentClass = (score?: number) => {
-  if (!score) return 'bg-muted text-muted-foreground'
+const getSentimentClass = (score?: number): string => {
+  if (score === undefined || score === null) return 'bg-muted text-muted-foreground'
 
   if (score > 0.7) return 'bg-green-500 text-white'
   if (score > 0.5) return 'bg-green-300 text-green-900'
@@ -44,6 +48,7 @@ const formattedText = computed(() => {
 
   let highlighted = inputText.value
   flaggedWords.value.forEach((word) => {
+    if (!word || !word.word) return
     const regex = new RegExp(`\\b${word.word}\\b`, 'gi')
     highlighted = highlighted.replace(
       regex,
