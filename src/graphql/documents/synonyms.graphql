@@ -9,3 +9,11 @@ query GetAllSynonyms {
     appropriatenessScore
   }
 }
+
+mutation SaveSynonyms($word: String!, $synonyms: [String]!, $appropriatenessScore: Int) {
+  saveSynonyms(word: $word, synonyms: $synonyms, appropriatenessScore: $appropriatenessScore) {
+    word
+    suggestions
+    appropriatenessScore
+  }
+}

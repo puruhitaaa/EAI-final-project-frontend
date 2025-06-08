@@ -16,6 +16,12 @@
           <router-link to="/categories" class="hover:text-primary transition-colors"
             >Categories</router-link
           >
+          <router-link to="/profanity" class="hover:text-primary transition-colors"
+            >Profanity</router-link
+          >
+          <router-link to="/synonyms" class="hover:text-primary transition-colors"
+            >Synonyms</router-link
+          >
         </div>
       </nav>
     </header>

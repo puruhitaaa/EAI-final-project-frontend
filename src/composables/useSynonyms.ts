@@ -1,6 +1,11 @@
-import { useQuery } from '@vue/apollo-composable'
+import { useQuery, useMutation } from '@vue/apollo-composable'
 import { ref, computed } from 'vue'
 import gql from 'graphql-tag'
+import type {
+  GetAllSynonymsQuery,
+  SaveSynonymsMutation,
+  SaveSynonymsMutationVariables,
+} from '@/gql/graphql'
 
 // GraphQL documents
 const GET_SUGGESTIONS = gql`
@@ -12,6 +17,16 @@ const GET_SUGGESTIONS = gql`
 const GET_ALL_SYNONYMS = gql`
   query GetAllSynonyms {
     getAllSynonyms {
+      word
+      suggestions
+      appropriatenessScore
+    }
+  }
+`
+
+const SAVE_SYNONYMS = gql`
+  mutation SaveSynonyms($word: String!, $synonyms: [String!]!, $appropriatenessScore: Int) {
+    saveSynonyms(word: $word, synonyms: $synonyms, appropriatenessScore: $appropriatenessScore) {
       word
       suggestions
       appropriatenessScore
@@ -54,12 +69,13 @@ export function useSynonyms() {
 
   // Get all synonyms
   const {
-    result: allSynonymsResult,
-    loading: allSynonymsLoading,
-    error: allSynonymsError,
-  } = useQuery<GetAllSynonymsResult>(GET_ALL_SYNONYMS)
+    result: synonymsResult,
+    loading: synonymsLoading,
+    error: synonymsError,
+    refetch: refetchSynonyms,
+  } = useQuery<GetAllSynonymsQuery>(GET_ALL_SYNONYMS)
 
-  const allSynonyms = computed(() => allSynonymsResult.value?.getAllSynonyms || [])
+  const synonyms = computed(() => synonymsResult.value?.getAllSynonyms ?? [])
 
   const getSuggestions = async (wordValue: string, contextValue?: string) => {
     word.value = wordValue
@@ -68,13 +84,23 @@ export function useSynonyms() {
     return suggestions.value
   }
 
+  const {
+    mutate: saveSynonymsMutation,
+    loading: saveSynonymsLoading,
+    error: saveSynonymsError,
+  } = useMutation<SaveSynonymsMutation, SaveSynonymsMutationVariables>(SAVE_SYNONYMS)
+
   return {
     suggestions,
     suggestionsLoading,
     suggestionsError,
-    allSynonyms,
-    allSynonymsLoading,
-    allSynonymsError,
+    synonyms,
+    synonymsLoading,
+    synonymsError,
     getSuggestions,
+    refetchSynonyms,
+    saveSynonyms: saveSynonymsMutation,
+    saveSynonymsLoading,
+    saveSynonymsError,
   }
 }

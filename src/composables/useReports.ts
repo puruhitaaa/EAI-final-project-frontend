@@ -1,6 +1,14 @@
-import { useQuery, useMutation } from '@vue/apollo-composable'
+import { useQuery, useMutation, useLazyQuery } from '@vue/apollo-composable'
 import { ref, computed } from 'vue'
 import gql from 'graphql-tag'
+import type {
+  GetReportsQuery,
+  GetReportsQueryVariables,
+  GetReportByIdQuery,
+  GetReportByIdQueryVariables,
+  GenerateReportMutation,
+  GenerateReportMutationVariables,
+} from '@/gql/graphql'
 
 // GraphQL documents
 const GET_REPORTS = gql`
@@ -56,56 +64,6 @@ const GENERATE_REPORT = gql`
     }
   }
 `
-
-// Types based on the GraphQL schema
-interface ReportCategory {
-  name: string
-  count: number
-}
-
-interface ReportEntry {
-  id: string
-  word: string
-  category: string
-  context: string
-  timestamp: string
-  severity: string
-}
-
-interface Report {
-  id: string
-  title: string
-  startDate: string
-  endDate: string
-  summary: string
-  totalFlagged: number
-  categories: ReportCategory[]
-  insights: string[]
-  riskAssessment: string
-  createdAt: string
-}
-
-interface ReportDetail extends Omit<Report, 'categories' | 'createdAt'> {
-  categoryBreakdown: Record<string, number>
-  entries: ReportEntry[]
-}
-
-interface GetReportsResult {
-  getReports: Report[]
-}
-
-interface GetReportByIdResult {
-  getReportById: ReportDetail
-}
-
-interface GenerateReportResult {
-  generateReport: {
-    id: string
-    title: string
-    summary: string
-  }
-}
-
 export function useReports() {
   const limit = ref(10)
   const offset = ref(0)
@@ -116,20 +74,20 @@ export function useReports() {
     loading: reportsLoading,
     error: reportsError,
     refetch: refetchReports,
-  } = useQuery<GetReportsResult>(GET_REPORTS, () => ({ limit: limit.value, offset: offset.value }))
+  } = useQuery<GetReportsQuery, GetReportsQueryVariables>(GET_REPORTS, () => ({
+    limit: limit.value,
+    offset: offset.value,
+  }))
 
-  const reports = computed(() => reportsResult.value?.getReports || [])
+  const reports = computed(() => reportsResult.value?.getReports ?? [])
 
   // Get report by ID
-  const reportId = ref<string | null>(null)
   const {
     result: reportDetailResult,
     loading: reportDetailLoading,
     error: reportDetailError,
-    refetch: refetchReportDetail,
-  } = useQuery<GetReportByIdResult>(GET_REPORT_BY_ID, () => ({ id: reportId.value }), {
-    enabled: computed(() => !!reportId.value),
-  })
+    load: loadReportDetail,
+  } = useLazyQuery<GetReportByIdQuery, GetReportByIdQueryVariables>(GET_REPORT_BY_ID)
 
   const reportDetail = computed(() => reportDetailResult.value?.getReportById)
 
@@ -138,9 +96,7 @@ export function useReports() {
     mutate: generateReportMutation,
     loading: generateReportLoading,
     error: generateReportError,
-  } = useMutation<GenerateReportResult, { startDate: string; endDate: string; title?: string }>(
-    GENERATE_REPORT,
-  )
+  } = useMutation<GenerateReportMutation, GenerateReportMutationVariables>(GENERATE_REPORT)
 
   const generateReport = async (startDate: string, endDate: string, title?: string) => {
     try {
@@ -154,12 +110,16 @@ export function useReports() {
   }
 
   const getReportById = (id: string) => {
-    reportId.value = id
-    return refetchReportDetail()
+    if (loadReportDetail) {
+      return loadReportDetail(undefined, { id })
+    }
   }
 
   const loadMoreReports = () => {
     offset.value += limit.value
+    // Note: This refetches the whole list with a new offset.
+    // For true pagination/infinite scroll, you would use 'fetchMore'.
+    // But for this project's scope, refetching is simpler.
     return refetchReports()
   }
 

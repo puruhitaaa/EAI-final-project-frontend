@@ -1,8 +1,15 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useReports } from '@/composables/useReports'
+import { PlusCircle } from 'lucide-vue-next'
 
 const { reports, reportsLoading, generateReport, generateReportLoading } = useReports()
+
+const filteredReports = computed(() =>
+  (reports.value ?? []).filter((report): report is NonNullable<(typeof reports.value)[number]> =>
+    Boolean(report),
+  ),
+)
 
 const showGenerateForm = ref(false)
 const newReport = ref({
@@ -17,147 +24,135 @@ const isSubmitDisabled = computed(() => {
 
 const handleGenerateReport = async () => {
   if (isSubmitDisabled.value) return
-
   try {
     await generateReport(
       newReport.value.startDate,
       newReport.value.endDate,
       newReport.value.title || undefined,
     )
-
     showGenerateForm.value = false
-    newReport.value = {
-      title: '',
-      startDate: '',
-      endDate: '',
-    }
+    newReport.value = { title: '', startDate: '', endDate: '' }
   } catch (error) {
     console.error('Error generating report:', error)
+    // You could add user-facing error feedback here
   }
+}
+
+const formatDate = (dateString: string | number | Date) => {
+  return new Date(dateString).toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  })
 }
 </script>
 
 <template>
-  <div>
-    <div class="flex justify-between items-center mb-6">
-      <h1 class="text-2xl font-bold">Reports</h1>
+  <div class="space-y-8">
+    <header class="flex justify-between items-start">
+      <div>
+        <h1 class="text-3xl font-bold tracking-tight">Reports</h1>
+        <p class="text-muted-foreground mt-1">
+          View and generate reports based on text analysis data.
+        </p>
+      </div>
       <button
         @click="showGenerateForm = !showGenerateForm"
-        class="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors"
+        class="inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
       >
-        {{ showGenerateForm ? 'Cancel' : 'Generate New Report' }}
+        <PlusCircle class="h-4 w-4" />
+        {{ showGenerateForm ? 'Cancel' : 'New Report' }}
       </button>
-    </div>
+    </header>
 
-    <!-- Report Generation Form -->
-    <div v-if="showGenerateForm" class="bg-card rounded-lg shadow p-6 mb-6">
-      <h2 class="text-xl font-semibold mb-4">Generate New Report</h2>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <!-- Report Generation Form Card -->
+    <div v-if="showGenerateForm" class="bg-card rounded-xl border shadow-sm p-6">
+      <h2 class="text-lg font-semibold mb-4">Generate New Report</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <div>
-          <label class="block text-sm font-medium mb-1">Title (Optional)</label>
+          <label class="block text-sm font-medium mb-2">Title (Optional)</label>
           <input
-            type="text"
             v-model="newReport.title"
-            class="w-full rounded-md border-border bg-background px-3 py-2 text-sm"
-            placeholder="Report title"
+            type="text"
+            placeholder="e.g., Q3 Content Review"
+            class="w-full rounded-md border-border bg-background p-2"
           />
         </div>
         <div>
-          <label class="block text-sm font-medium mb-1">Start Date*</label>
+          <label class="block text-sm font-medium mb-2">Start Date</label>
           <input
-            type="date"
             v-model="newReport.startDate"
-            class="w-full rounded-md border-border bg-background px-3 py-2 text-sm"
-            required
+            type="date"
+            class="w-full rounded-md border-border bg-background p-2"
           />
         </div>
         <div>
-          <label class="block text-sm font-medium mb-1">End Date*</label>
+          <label class="block text-sm font-medium mb-2">End Date</label>
           <input
-            type="date"
             v-model="newReport.endDate"
-            class="w-full rounded-md border-border bg-background px-3 py-2 text-sm"
-            required
+            type="date"
+            class="w-full rounded-md border-border bg-background p-2"
           />
         </div>
       </div>
-      <div class="mt-4 flex justify-end">
+      <div class="flex justify-end">
         <button
           @click="handleGenerateReport"
-          class="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors"
+          class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
           :disabled="isSubmitDisabled"
         >
-          <span v-if="generateReportLoading">Generating...</span>
+          <span v-if="generateReportLoading" class="animate-pulse">Generating...</span>
           <span v-else>Generate Report</span>
         </button>
       </div>
     </div>
 
-    <!-- Loading State -->
-    <div v-if="reportsLoading && !reports.length" class="flex justify-center items-center py-12">
-      <div
-        class="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"
-      ></div>
-    </div>
+    <!-- Reports List Card -->
+    <div class="bg-card rounded-xl border shadow-sm">
+      <div v-if="reportsLoading && reports.length === 0" class="p-16 text-center">
+        <div class="animate-pulse text-muted-foreground">Loading reports...</div>
+      </div>
 
-    <!-- No Reports State -->
-    <div v-else-if="!reports.length" class="bg-card rounded-lg shadow p-8 text-center">
-      <p class="text-lg text-muted-foreground mb-4">No reports available</p>
-      <button
-        @click="showGenerateForm = true"
-        class="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors"
-      >
-        Generate Your First Report
-      </button>
-    </div>
+      <div v-else-if="reports.length === 0" class="text-center p-16 text-muted-foreground">
+        <h3 class="text-lg font-semibold">No Reports Found</h3>
+        <p class="mt-1">Generate a new report to get started.</p>
+      </div>
 
-    <!-- Reports List -->
-    <div v-else class="bg-card rounded-lg shadow">
-      <div class="overflow-x-auto">
-        <table class="w-full">
-          <thead>
-            <tr class="border-b border-border">
-              <th class="text-left py-3 px-4 font-medium">Title</th>
-              <th class="text-left py-3 px-4 font-medium">Date Range</th>
-              <th class="text-left py-3 px-4 font-medium">Summary</th>
-              <th class="text-left py-3 px-4 font-medium">Flagged</th>
-              <th class="text-left py-3 px-4 font-medium">Top Categories</th>
-              <th class="text-left py-3 px-4 font-medium"></th>
+      <div v-else class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="border-b">
+            <tr class="text-muted-foreground">
+              <th class="text-left font-medium p-4">Report</th>
+              <th class="text-left font-medium p-4">Date Range</th>
+              <th class="text-left font-medium p-4">Summary</th>
+              <th class="text-center font-medium p-4">Flagged</th>
+              <th class="text-left font-medium p-4"></th>
             </tr>
           </thead>
           <tbody>
             <tr
-              v-for="report in reports"
+              v-for="report in filteredReports"
               :key="report.id"
-              class="border-b border-border hover:bg-muted/50"
+              class="border-b hover:bg-muted/50"
             >
-              <td class="py-3 px-4">
-                <div class="font-medium">{{ report.title }}</div>
-                <div class="text-xs text-muted-foreground">Created {{ report.createdAt }}</div>
-              </td>
-              <td class="py-3 px-4">
-                <div>{{ report.startDate }}</div>
-                <div>to</div>
-                <div>{{ report.endDate }}</div>
-              </td>
-              <td class="py-3 px-4">{{ report.summary }}</td>
-              <td class="py-3 px-4">{{ report.totalFlagged }}</td>
-              <td class="py-3 px-4">
-                <div class="flex flex-col gap-1">
-                  <div
-                    v-for="(category, i) in report.categories.slice(0, 2)"
-                    :key="i"
-                    class="text-sm"
-                  >
-                    {{ category.name }}: {{ category.count }}
-                  </div>
-                  <div v-if="report.categories.length > 2" class="text-xs text-muted-foreground">
-                    +{{ report.categories.length - 2 }} more
-                  </div>
+              <td class="p-4">
+                <div class="font-semibold">{{ report.title }}</div>
+                <div class="text-xs text-muted-foreground">
+                  Created on {{ formatDate(report.createdAt) }}
                 </div>
               </td>
-              <td class="py-3 px-4">
-                <router-link :to="`/reports/${report.id}`" class="text-primary hover:underline">
+              <td class="p-4 text-muted-foreground">
+                {{ formatDate(report.startDate) }} - {{ formatDate(report.endDate) }}
+              </td>
+              <td class="p-4 text-muted-foreground max-w-xs truncate">
+                {{ report.summary }}
+              </td>
+              <td class="p-4 font-semibold text-center">{{ report.totalFlagged }}</td>
+              <td class="p-4 text-right">
+                <router-link
+                  :to="`/reports/${report.id}`"
+                  class="font-medium text-primary hover:underline"
+                >
                   View Details
                 </router-link>
               </td>

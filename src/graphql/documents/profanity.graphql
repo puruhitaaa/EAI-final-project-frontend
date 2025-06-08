@@ -1,0 +1,18 @@
+query GetAllProfaneWords {
+  getAllProfaneWords {
+    word
+    severity
+    contextDependent
+    aiDetectable
+    geminiExplanation
+    suggestions
+    category
+  }
+}
+
+mutation AddProfaneWord($word: String!, $severity: Int, $contextDependent: Boolean) {
+  addProfaneWord(word: $word, severity: $severity, contextDependent: $contextDependent) {
+    word
+    severity
+  }
+}

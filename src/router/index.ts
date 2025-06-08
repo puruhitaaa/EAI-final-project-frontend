@@ -1,4 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import TextAnalysisPage from '@/pages/TextAnalysisPage.vue'
+import ReportsPage from '@/pages/ReportsPage.vue'
+import ReportDetailsPage from '@/pages/ReportDetailsPage.vue'
+import CategoriesPage from '@/pages/CategoriesPage.vue'
+import ProfanityPage from '@/pages/ProfanityPage.vue'
+import SynonymsPage from '@/pages/SynonymsPage.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -11,22 +17,32 @@ const router = createRouter({
     {
       path: '/text-analysis',
       name: 'text-analysis',
-      component: () => import('@/pages/TextAnalysisPage.vue'),
+      component: TextAnalysisPage,
     },
     {
       path: '/reports',
       name: 'reports',
-      component: () => import('@/pages/ReportsPage.vue'),
+      component: ReportsPage,
     },
     {
       path: '/reports/:id',
       name: 'report-details',
-      component: () => import('@/pages/ReportDetailsPage.vue'),
+      component: ReportDetailsPage,
     },
     {
       path: '/categories',
       name: 'categories',
-      component: () => import('@/pages/CategoriesPage.vue'),
+      component: CategoriesPage,
+    },
+    {
+      path: '/profanity',
+      name: 'profanity',
+      component: ProfanityPage,
+    },
+    {
+      path: '/synonyms',
+      name: 'synonyms',
+      component: SynonymsPage,
     },
   ],
 })
