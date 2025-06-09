@@ -5,6 +5,7 @@ import ReportDetailsPage from '@/pages/ReportDetailsPage.vue'
 import CategoriesPage from '@/pages/CategoriesPage.vue'
 import ProfanityPage from '@/pages/ProfanityPage.vue'
 import SynonymsPage from '@/pages/SynonymsPage.vue'
+import HealthcareReviewsPage from '@/pages/HealthcareReviewsPage.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -43,6 +44,11 @@ const router = createRouter({
       path: '/synonyms',
       name: 'synonyms',
       component: SynonymsPage,
+    },
+    {
+      path: '/healthcare-reviews',
+      name: 'healthcare-reviews',
+      component: HealthcareReviewsPage,
     },
   ],
 })
