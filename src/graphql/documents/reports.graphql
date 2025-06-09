@@ -45,3 +45,14 @@ mutation GenerateReport($startDate: String!, $endDate: String!, $title: String) 
     summary
   }
 }
+
+mutation LogReport($word: String!, $context: String, $category: String, $severity: Int) {
+  logReport(word: $word, context: $context, category: $category, severity: $severity) {
+    id
+    word
+    category
+    context
+    timestamp
+    severity
+  }
+}

@@ -163,9 +163,7 @@ const getSeverityClass = (severity: unknown): string => {
               <div class="flex justify-between">
                 <span class="text-muted-foreground">Confidence:</span>
                 <span class="font-medium"
-                  >{{
-                    wordCategory.confidence ? (wordCategory.confidence * 100).toFixed(0) : 'N/A'
-                  }}%</span
+                  >{{ wordCategory.confidence ? wordCategory.confidence : 'N/A' }}%</span
                 >
               </div>
               <div class="pt-2">

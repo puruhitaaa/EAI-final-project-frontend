@@ -8,6 +8,8 @@ import type {
   GetReportByIdQueryVariables,
   GenerateReportMutation,
   GenerateReportMutationVariables,
+  LogReportMutation,
+  LogReportMutationVariables,
 } from '@/gql/graphql'
 
 // GraphQL documents
@@ -64,6 +66,20 @@ const GENERATE_REPORT = gql`
     }
   }
 `
+
+const LOG_REPORT = gql`
+  mutation LogReport($word: String!, $context: String, $category: String, $severity: Int) {
+    logReport(word: $word, context: $context, category: $category, severity: $severity) {
+      id
+      word
+      category
+      context
+      timestamp
+      severity
+    }
+  }
+`
+
 export function useReports() {
   const limit = ref(10)
   const offset = ref(0)
@@ -98,6 +114,13 @@ export function useReports() {
     error: generateReportError,
   } = useMutation<GenerateReportMutation, GenerateReportMutationVariables>(GENERATE_REPORT)
 
+  // Log report entry
+  const {
+    mutate: logReportMutation,
+    loading: logReportLoading,
+    error: logReportError,
+  } = useMutation<LogReportMutation, LogReportMutationVariables>(LOG_REPORT)
+
   const generateReport = async (startDate: string, endDate: string, title?: string) => {
     try {
       const result = await generateReportMutation({ startDate, endDate, title })
@@ -105,6 +128,26 @@ export function useReports() {
       return result?.data?.generateReport
     } catch (error) {
       console.error('Error generating report:', error)
+      throw error
+    }
+  }
+
+  const logReport = async (
+    word: string,
+    context?: string,
+    category?: string,
+    severity?: number,
+  ) => {
+    try {
+      const result = await logReportMutation({
+        word,
+        context,
+        category,
+        severity,
+      })
+      return result?.data?.logReport
+    } catch (error) {
+      console.error('Error logging report:', error)
       throw error
     }
   }
@@ -135,6 +178,9 @@ export function useReports() {
     generateReportError,
     getReportById,
     loadMoreReports,
+    logReport,
+    logReportLoading,
+    logReportError,
     setLimit: (newLimit: number) => {
       limit.value = newLimit
       return refetchReports()

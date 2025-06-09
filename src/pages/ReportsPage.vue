@@ -39,11 +39,21 @@ const handleGenerateReport = async () => {
 }
 
 const formatDate = (dateString: string | number | Date) => {
-  return new Date(dateString).toLocaleDateString(undefined, {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  })
+  // Handle Unix timestamps (both as strings and numbers)
+  if (dateString) {
+    const date = new Date(typeof dateString === 'string' ? parseInt(dateString, 10) : dateString)
+
+    // Check if the date is valid
+    if (!isNaN(date.getTime())) {
+      return date.toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      })
+    }
+  }
+
+  return 'Invalid date'
 }
 </script>
 

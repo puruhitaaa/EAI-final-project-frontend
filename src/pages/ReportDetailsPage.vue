@@ -31,13 +31,22 @@ const getSeverityClass = (severity: unknown): string => {
 
 const formatDate = (dateString: string | number | Date) => {
   if (!dateString) return 'N/A'
-  return new Date(dateString).toLocaleDateString(undefined, {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: 'numeric',
-  })
+
+  // Handle Unix timestamps (both as strings and numbers)
+  const date = new Date(typeof dateString === 'string' ? parseInt(dateString, 10) : dateString)
+
+  // Check if the date is valid
+  if (!isNaN(date.getTime())) {
+    return date.toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric',
+    })
+  }
+
+  return 'Invalid date'
 }
 
 const categoryBreakdownArray = computed(() => {

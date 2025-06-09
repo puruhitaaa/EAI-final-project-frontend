@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useTextAnalysis } from '@/composables/useTextAnalysis'
+import { useReports } from '@/composables/useReports'
 import { AlertTriangle, CheckCircle, Info } from 'lucide-vue-next'
 
 const inputText = ref('')
@@ -17,6 +18,8 @@ const {
   sentimentError,
 } = useTextAnalysis()
 
+const { logReport } = useReports()
+
 const isLoading = computed(() => checkLoading.value || sentimentLoading.value)
 const error = computed(() => checkError.value || sentimentError.value)
 
@@ -32,6 +35,17 @@ const handleAnalyze = async () => {
 
   // Using Promise.all to run analyses in parallel
   await Promise.all([checkText(inputText.value), analyzeSentiment(inputText.value)])
+
+  // Log each flagged word to reports after analysis is complete
+  if (filteredFlaggedWords.value.length > 0) {
+    filteredFlaggedWords.value.forEach(async (word) => {
+      try {
+        await logReport(word.word, inputText.value, word.category || undefined, word.severity || 1)
+      } catch (error) {
+        console.error('Error logging flagged word:', error)
+      }
+    })
+  }
 
   analysisPerformed.value = true
 }
@@ -52,8 +66,8 @@ const getSeverityClass = (severity: unknown): string => {
 
 const getScoreColor = (score: number | undefined): string => {
   if (score === undefined || score === null) return 'bg-muted'
-  if (score > 0.7) return 'bg-green-500'
-  if (score > 0.4) return 'bg-yellow-500'
+  if (score > 70) return 'bg-green-500'
+  if (score > 40) return 'bg-yellow-500'
   return 'bg-red-500'
 }
 
@@ -82,14 +96,15 @@ const overallScore = computed(() => {
   if (!sentiment.value) return 0
   const { appropriatenessScore, toxicityScore, professionalismScore } = sentiment.value
   return (
-    (Number(appropriatenessScore) + (1 - Number(toxicityScore)) + Number(professionalismScore)) / 3
+    (Number(appropriatenessScore) + (100 - Number(toxicityScore)) + Number(professionalismScore)) /
+    3
   )
 })
 
 const overallFeedback = computed(() => {
   const score = overallScore.value
-  if (score > 0.7) return { text: 'Looks Good!', icon: CheckCircle, class: 'text-green-500' }
-  if (score > 0.4)
+  if (score > 70) return { text: 'Looks Good!', icon: CheckCircle, class: 'text-green-500' }
+  if (score > 40)
     return { text: 'Needs Improvement', icon: AlertTriangle, class: 'text-yellow-500' }
   return { text: 'High Risk', icon: AlertTriangle, class: 'text-destructive' }
 })
